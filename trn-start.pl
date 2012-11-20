@@ -39,7 +39,6 @@ BEGIN: {
 
 #Hope and pray that we can cleanup 
 END: {_clean()};
-DISTORY: {_clean()};
 
 my ($server, %kids, %args, @cached_argv);
 my $trn = new Transaction; #Transaction obj
