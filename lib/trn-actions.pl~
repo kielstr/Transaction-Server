@@ -1,0 +1,41 @@
+use strict;
+use Data::Dumper;
+use Device::Regulator::Plasmatronic;
+
+sub main_batv {
+  my ($socket, $trn) = @_;
+  
+#sleep 1 until (! -e ">/tmp/pl60");
+  
+#  open F, ">/tmp/pl60" or die $!;
+  system ("/usr/local/bin/pwcview -h -c 1 -o /usr/local/www/apache22/data/foo.jpg");
+  my $pl = Device::Regulator::Plasmatronic->new(port=>"/dev/ttyu1");
+
+#print "AMP IN: " . $pl->pl_in . "\n";
+#print "PL60 hour = " . $pl->pl_hour . "\n";
+#print "Battery voltage = " . $pl->pl_batv . "V\n";
+  
+  
+  trans_data($socket, 'int_float', sprintf("%d:%d", substr($pl->pl_dfltim, 0, 2), substr($pl->pl_dfltim, 2, 1)*6));
+  trans_data($socket, 'dfltimraw', $pl->pl_dfltim);
+  trans_data($socket, 'batv', $pl->pl_batv);
+  trans_data($socket, 'dvmax', $pl->pl_dvmax);
+  trans_data($socket, 'amps', $pl->pl_cint*4);
+  trans_data($socket, 'amph', $pl->pl_in);
+  trans_data($socket, 'dvmin', $pl->pl_dvmin);
+
+  trans_data($socket, 'int_float_1', 
+      sprintf("%d:%d", 
+          substr($pl->pl_nv_1_time, 0, 2), 
+          substr($pl->pl_nv_1_time, 2, 1)*6));
+  trans_data($socket, 'int_float_2', 
+      sprintf("%d:%d", 
+          substr($pl->pl_nv_2_time, 0, 2), 
+          substr($pl->pl_nv_2_time, 2, 1)*6));
+
+  trans_send($socket);
+#  close F;
+#  unlink ">/tmp/pl60";
+  return 1;
+}
+1;
