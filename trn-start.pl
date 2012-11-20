@@ -7,6 +7,8 @@ use POSIX qw(:signal_h :sys_wait_h);
 use Sys::Syslog qw(:DEFAULT setlogsock);
 use Getopt::Long;
 use DB_File;
+use IO::Socket::SSL;
+use IO::Socket;
 use Data::Dumper;
 
 use vars qw(%users %actions);
@@ -102,9 +104,7 @@ foreach my $file (TRANSACTION_FILE, ACCESSLIST_FILE) {
 }
 
 if (exists $args{ssl} and $args{ssl}) {
-	#Open SSL TCP port
-	use IO::Socket::SSL;
-	
+	#Open SSL TCP port	
 	$server = IO::Socket::SSL->new(
 		Listen => 10,
 		LocalPort => SERVER_PORT,
@@ -121,8 +121,6 @@ if (exists $args{ssl} and $args{ssl}) {
 
 } else {
 	#Open TCP port
-	use IO::Socket;
-	
 	$server = IO::Socket::INET->new (
 		LocalPort	=> SERVER_PORT,
 		Type		=> SOCK_STREAM,
