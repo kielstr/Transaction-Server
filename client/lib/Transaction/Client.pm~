@@ -1,0 +1,72 @@
+package Transaction::Client;
+
+use strict;
+use warnings;
+use IO::Socket;
+
+sub new {
+	my ($self, %args) = @_;
+	my %conf = map {uc $_ => $args{$_}} keys %args;
+	$self = bless \%conf, $self;
+	$self->connect;
+	$self;
+}
+
+sub connect {
+	my $self = shift;
+	$self->{_SOCKET} = IO::Socket::INET->new (
+		PeerAddr => $self->{HOST},
+		PeerPort => $self->{PORT},
+		Type => SOCK_STREAM
+	) or die "Couldn't connect to server at $self->{HOST}:$self->{PORT}\n\t$@\n";	
+}
+
+sub send {
+	my ($self, $user, $passwd, $action, %args) = @_;
+	my $socket = $self->{_SOCKET};
+	$socket->print("user=$user\n");
+	$socket->print("password=$passwd\n");
+	$socket->print("action=$action\n");
+	$socket->print("$_=$args{$_}\n") for keys %args;
+	$socket->print(".\n");
+	$self->read;
+}
+
+sub read {
+	my $self = shift;
+	my $socket = $self->{_SOCKET};
+	while (my $buff = $socket->getline) {
+		my ($key, $val) = split '=', $buff;
+		$key ||= $buff;
+		$key =~ s/(^\s+)|(\s+$)//;
+		last if $key eq '.';
+		next unless $val;
+		$val =~ s/(^\s+)|(\s+$)|\n+//;
+		$self->param($key=>$val);
+	}
+}
+
+sub quit {
+	my $self = shift;
+	my $socket = $self->{_SOCKET};
+	$socket->print("quit\n");
+}
+
+sub param {
+	my ($self, $key, $val) = @_;
+	return keys %{$self->{_PARAM}}
+		if wantarray;
+	$self->{_PARAM}{$key} = $val
+		if $key and $val;
+	return $self->{_PARAM}{$key} 
+		if $key and exists $self->{_PARAM}{$key} 
+}
+
+
+sub DESTROY {
+	my $self = shift;
+	my $socket = $self->{_SOCKET} if exists $self->{_SOCKET};
+	$socket->close if defined $socket;
+}
+
+1;
