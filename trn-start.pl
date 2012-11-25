@@ -18,7 +18,7 @@ use constant PID_NAME => 'trnd';
 
 my $options = new Transaction::Options;
 
-$0 = PID_NAME;
+fork and exit unless $options->debug;
 
 STDOUT->autoflush;
 STDERR->autoflush;
@@ -34,6 +34,8 @@ $pidfile->create;
 
 my %children;
 Transaction::Sig->new(\%children, $0, $trn_log);
+
+$0 = PID_NAME;
 
 my $select = new IO::Select;
 my $server = IO::Socket::INET->new (

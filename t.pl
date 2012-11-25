@@ -1,9 +1,9 @@
-
 #!/usr/bin/perl -w
 
 use strict;
 use Data::Dumper;
-use lib qw(/usr/local/scripts/trans/lib);
+use FindBin qw($Bin);
+use lib "$Bin/lib"; 
 use Transaction;
 
 my $trn = new Transaction

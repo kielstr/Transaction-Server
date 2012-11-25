@@ -22,8 +22,8 @@ sub new {
 
 sub load {
 	my $self = shift;
-	do "trans-action.pl";
-	do "trans-access.pl"	
+	require "trans-action.pl";
+	require "trans-access.pl"	
 }
 
 sub param {
@@ -94,17 +94,23 @@ sub do {
 	$self->{_param} = {};
 } 
 
-sub trans_send {
-	my $socket = shift;
-	Transaction->client($socket);
-	Transaction->end;
-}
+{
+	my $trn;
+	sub trans_send {
+		my $socket = shift;
+		$trn = new Transaction unless defined $trn;
+		
+		$trn->client($socket);
+		$trn->send;
+	}
 
-sub trans_data {
-	my ($socket, $key, $val) = @_;
-	Transaction->client($socket);
-	Transaction->send($key, $val);
+	sub trans_data {
+		my ($socket, $key, $val) = @_;
+		$trn = new Transaction unless defined $trn;
+		$trn->client($socket);
+		$trn->data($key, $val);
 	
+	}
 }
 
 sub data {
@@ -116,7 +122,7 @@ sub data {
 sub send {
 	my $self = shift;
 	my $client = $self->{_CLIENT};
-	$client->print(".\n");
+	$client->print(".\n") if $client;
 }
 
 sub AUTOLOAD {
