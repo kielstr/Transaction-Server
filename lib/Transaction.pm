@@ -22,17 +22,17 @@ sub new {
 
 sub load {
 	my $self = shift;
-	require "trans-action.pl";
-	require "trans-access.pl"	
+	do "trans-action.pl";
+	do "trans-access.pl"	
 }
 
 sub param {
 	my ($self, $param, $val) = @_;
+
 	if ($val) {
 		$self->{_param}{$param} = $val;
 		return 1;
 	}
-
 
 	if(wantarray() and not $param) {
 		return keys %{$self->{_param}};
@@ -41,7 +41,6 @@ sub param {
 	return unless $param and $self->{_param}{$param};
 	return $self->{_param}{$param};
 }
-		
                                                         
 sub client {
 	my ($self, $client) = @_;

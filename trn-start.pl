@@ -4,19 +4,19 @@ use strict;
 use IO::Socket;
 use IO::Select;
 use IO::Handle;
-use File::Pid;
 use FindBin qw($Bin);
 use lib "$Bin/lib";
 use Transaction qw(trans_send trans_data);
 use Transaction::Log qw(trans_log);
 use Transaction::Sig;
+use Transaction::Pid;
+use Transaction::Options; 
 use Data::Dumper;
 
 use constant PORT => 5001;
 use constant PID_NAME => 'trnd';
 
-my %children;
-Transaction::Sig->new(\%children, $0, $trn_log);
+my $options = new Transaction::Options;
 
 $0 = PID_NAME;
 
@@ -24,20 +24,20 @@ STDOUT->autoflush;
 STDERR->autoflush;
 
 my $trn_log = new Transaction::Log PID_NAME => PID_NAME;
-my $pidfile = File::Pid->new({
-	file => '/var/run/trn.pid'
-});
-
-$pidfile->write;
+my $pidfile = Transaction::Pid->new(runfile => '/var/run/trn.pid');
 
 if (my $pid = $pidfile->running) {
 	die "Already running: $pid" ;
 }
 
+$pidfile->create;
+
+my %children;
+Transaction::Sig->new(\%children, $0, $trn_log);
 
 my $select = new IO::Select;
 my $server = IO::Socket::INET->new (
-	LocalPort => PORT,
+	LocalPort => ($options->port ? $options->port : PORT),
 	Type => SOCK_STREAM,
 	Reuse => 1,
 	Listen => 10
@@ -86,5 +86,4 @@ while ($$) {
 	}	
 }
 
-$pidfile->remove;
 close $server;

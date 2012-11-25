@@ -2,6 +2,7 @@ package Transaction::Sig;
 
 use strict;
 use warnings;
+use Data::Dumper;
 
 use POSIX qw(:signal_h :sys_wait_h);
 
@@ -14,7 +15,8 @@ sub new {
 }
 
 sub init {
-	my ($children, $script_name, $trn_log) = @_;
+	my ($self, $children, $script_name, $trn_log) = @_;
+
 	$SIG{CHLD} = sub { 
 		while ((my $child = waitpid(-1,WNOHANG)) > 0) {
 			if (my $start = $children->{$child}) {
@@ -41,7 +43,6 @@ sub init {
 	$SIG{TERM} = $SIG{INT} = sub {
 		$trn_log->log('notice', "waiting for spawned proccess to finish") unless waitpid(-1,WNOHANG) == -1;
 		sleep until (my $kid = waitpid(-1,WNOHANG)) == -1;
-
 		$trn_log->log('notice', 'Stopping trnd');
 		exit;
 	};
