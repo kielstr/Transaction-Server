@@ -1,0 +1,33 @@
+<config>
+<server>
+	<port>5001</port>
+	<pidfile_dir>./</pidfile_dir>
+	<transaction name="echotest">
+		<username>www</username>
+		<allow>kiel,www,nobody</allow>
+		<deny>all</deny>
+	</transaction>
+	<transaction name="test">
+		<username>www</username>
+		<allow>kiel,www,nobody</allow>
+		<deny>all</deny>
+	</transaction>
+	<access>
+		<client>
+			<username>kiel</username>
+			<password>opennow</password>
+			<host>10.0.0.1,localhost</host>
+			<desc>Testing Client Connection</desc>
+		</client>
+		<client>
+			<username>www</username>
+			<password>opennow</password>
+			<host>10.0.0.1,127.0.0.1</host>
+			<desc>Webservice Client Connection</desc>
+		</client>
+	</access>
+</server>
+<webUI>
+	<port>5001</port>
+</webUI>
+</config>

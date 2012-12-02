@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<server>
+	<port>5001</port>
+	<pidfile_dir>/var/run/</pidfile_dir>
+	<transaction name='echotest'>
+		<client user='kiel' passwd='opennow' host='10.0.0.1:localhost' \>
+		<client user='www' passwd='opennow' host='10.0.0.1' \>
+		<client user='nobody' passwd='opennow' host='10.0.0.1' \>
+	</transaction>
+</server
