@@ -29,6 +29,8 @@ sub send {
 	$socket->print("action=$action\n");
 	$socket->print("$_=$args{$_}\n") for keys %args;
 	$socket->print(".\n");
+	$self->{_PARAM} = {};
+
 	$self->read;
 }
 

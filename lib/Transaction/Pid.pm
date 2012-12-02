@@ -7,19 +7,18 @@ use IO::File;
 use Carp;
 use Data::Dumper;
 
-my %_data;
-
 sub new {
 	my ($self, %args) = @_;
-	my %cfg = map {uc $_ => $args{$_}} keys %args;
 	$self = bless {}, $self;
-	$_data{refaddr $self} = \%cfg;
 	return $self;
 }
 
 sub running {
 	my $self = shift;
-	my $runfile = $_data{refaddr $self}->{RUNFILE};
+
+	my $data = \%{Transaction::_data};
+	my $runfile = $data->{CONFIG}{PIDFILE_DIR}. "/trn.pid";
+	
 	if (-e $runfile) {
 		my $fh = IO::File->new($runfile, 'r');
 		croak "Can not open run file $runfile $!" unless defined $fh;
@@ -32,8 +31,9 @@ sub running {
 
 sub create {
 	my $self = shift;
-	my $runfile = $_data{refaddr $self}->{RUNFILE};
-	my $fh = IO::File->new($runfile, 'w');
+	my $data = \%{Transaction::_data};
+	my $runfile = $data->{CONFIG}{PIDFILE_DIR}. "/trn.pid";
+  	my $fh = IO::File->new($runfile, 'w');
 	croak "Failed to create run file $runfile $!" unless defined $fh;
 	print $fh "$$";
 	$fh->close;	
@@ -41,7 +41,8 @@ sub create {
 
 sub DESTROY {
 	my $self = shift;
-	my $runfile = $_data{refaddr $self}->{RUNFILE};
+	my $data = \%{Transaction::_data};
+	my $runfile = $data->{CONFIG}{PIDFILE_DIR}. "/trn.pid";
 	if (-r $runfile) {
 		my $fh = IO::File->new($runfile, 'r');
 		croak "Failed to open run file $runfile $!" unless defined $fh;

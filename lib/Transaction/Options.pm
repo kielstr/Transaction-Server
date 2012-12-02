@@ -9,12 +9,10 @@ use Pod::Find qw(pod_where);
 use vars qw($AUTOLOAD);
 use Data::Dumper;
 
-my %_data;
 sub new {
 	my ($self, %args) = @_;
 	$self = bless {}, $self;
-	
-	$_data{refaddr $self} = {map {uc $_ => $args{$_}} keys %args};
+	$self->raw_argv(\@ARGV);
 
 	my ($help, $verbose, $port, $debug) = (0, 0, 0, 0);
 	GetOptions(
@@ -35,11 +33,12 @@ sub new {
 sub AUTOLOAD {
 	my $self = shift;
 	(my $attr = $AUTOLOAD)=~ s/.*:://;
+	my $data = \%{Transaction::_data};
 	if (my $val = shift) {
-		$_data{refaddr $self}->{uc $attr} = $val;
+		$data->{OPTIONS}{uc $attr} = $val;
 	}
 	
-	return (exists $_data{refaddr $self}->{uc $attr}) ? $_data{refaddr $self}->{uc $attr} : undef;  
+	return (exists $data->{OPTIONS}{uc $attr}) ? $data->{OPTIONS}->{uc $attr} : undef;  
 }
 
 1;

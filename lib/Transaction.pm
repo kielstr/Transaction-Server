@@ -2,16 +2,18 @@ package Transaction;
 
 use strict;
 use warnings;
-use Data::Dumper;
-
+use IO::Socket;
 use vars qw($AUTOLOAD @ISA @EXPORT_OK $users);
 use FindBin qw($Bin);
 use lib "$Bin/lib";
 use Transaction::Param;
 require Exporter;
+use Data::Dumper;
 
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(trans_data trans_send);
+
+our %_data;
      
 sub new {
 	my $self = shift;
@@ -66,8 +68,29 @@ sub auth_ok {
 	my $user = $self->param('user');
 	my $password = $self->param('password');
 	my $action = $self->param('action');
-	
+
 	my $logger = $self->log;
+	my $data = \%{Transaction::_data};
+	
+	my $transaction = $data->{CONFIG}{TRANSACTION}{$action} or do {
+			$self->data('error', '1003'); 
+			$self->send;
+			return 0;
+	};
+	
+	my @allowed = split ',', $$transaction{allow};
+	$self->_report_error('1004') and return 0
+		unless grep /^$user$/, @allowed;
+	
+	my $access = $data->{CONFIG}{ACCESS};
+	for my $client (@{$access->{client}}) {
+		if ($user eq $client->{username} 
+			and $password eq $client->{password} 
+			and grep {$peer_addr eq $_} split ',', $client->{host}) {
+			$logger->log('notice', "Authenticated user $user for transaction $action");
+			return 1;			
+		}
+	}
 
 	for my $href (@$users) {
 		if ($user eq $href->{username} 
@@ -78,12 +101,12 @@ sub auth_ok {
 			return 1;	
 		} 
 	}
-	$self->data('error', '1001');
-	$self->send;
+
+	$self->_report_error('1001');
 	return 0;
 }
 
-sub do {
+sub run {
 	my $self = shift;
 	my $param = $self->{_param};
 	my $action = $self->param('action');
@@ -125,6 +148,22 @@ sub send {
 	$client->print(".\n") if $client;
 }
 
+sub start_server {
+	my $self = shift;
+	my $data = \%{Transaction::_data};
+	my $options = $data->{OPTION};
+	my $config = $data->{CONFIG};
+	
+	my $server = IO::Socket::INET->new (
+		LocalPort => ($options->{PORT} ? $options->{PORT} : $config->{PORT}),
+		Type => SOCK_STREAM,
+		Reuse => 1,
+		Listen => 10
+	) or die "Couldn't be a tcp server on port ". ($options->{PORT} ? $options->{PORT} : $config->{PORT}) .": $@\n";
+	$_data{SERVER}->{SOCKET} = $server;
+	return $server;
+}
+
 sub AUTOLOAD {
 	my $self = shift;
 	(my $attr = $AUTOLOAD) =~ s/.*:://;
@@ -133,7 +172,16 @@ sub AUTOLOAD {
 }
 
 sub DESTROY {
-	return;
+	my $self = shift;
+	my $socket = $_data{SERVER}->{SOCKET};
+	$socket->close if defined $socket;
+	return 1;
+}
+
+sub _report_error {
+	my ($self, $error) = @_;
+	$self->data('error', $error);
+	$self->send;
 }
 
 1;
