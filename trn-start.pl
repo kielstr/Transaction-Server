@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 use Modern::Perl;
 use IO::Select;
@@ -6,6 +6,7 @@ use IO::Handle;
 use IO::Pipe;
 use FindBin qw($Bin);
 use lib "$Bin/lib";
+
 use Transaction qw(trans_send trans_data);
 use Transaction::Log qw(trans_log);
 use Transaction::Sig;
@@ -21,7 +22,7 @@ my $trn = Transaction->new;
 my $config = Transaction::Config->new;
 my $options = Transaction::Options->new;
 
-#fork and exit unless $options->debug;
+fork and exit unless $options->debug;
 
 STDOUT->autoflush;
 STDERR->autoflush;
@@ -52,7 +53,7 @@ if (my $child_pid = fork) {
 }
 
 $pipe->reader;
-$select->add($pipe);
+#$select->add($pipe);
 $select->add($server);
 
 $trn_log->log('notice', "Transaction server started ".scalar localtime);
