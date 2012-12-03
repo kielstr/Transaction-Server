@@ -3,12 +3,12 @@
 	<port>5001</port>
 	<pidfile_dir>./</pidfile_dir>
 	<transaction name="echotest">
-		<username>www</username>
+		<username>nobody</username>
 		<allow>kiel,www,nobody</allow>
 		<deny>all</deny>
 	</transaction>
 	<transaction name="test">
-		<username>www</username>
+		<username>nobody</username>
 		<allow>kiel,www,nobody</allow>
 		<deny>all</deny>
 	</transaction>
@@ -28,6 +28,7 @@
 	</access>
 </server>
 <webUI>
+	<enable>YES</enable>
 	<port>5001</port>
 </webUI>
 </config>

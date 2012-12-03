@@ -7,6 +7,10 @@ use vars qw($AUTOLOAD @ISA @EXPORT_OK $users);
 use FindBin qw($Bin);
 use lib "$Bin/lib";
 use Transaction::Param;
+use User::pwent;
+use English;
+use Carp;
+
 require Exporter;
 use Data::Dumper;
 
@@ -113,6 +117,17 @@ sub run {
 	my $logger = $self->log;
 	$logger->log('notice', "Processing transaction $action");
 	
+	my $data = \%{Transaction::_data};
+	
+	my $transaction = $data->{CONFIG}{TRANSACTION}{$action};
+	my $username = $transaction->{username};
+	
+	my $pw = getpwnam($username);
+	croak "No $username user" unless defined $pw;
+
+	$EGID = $pw->uid;
+	$EUID = $pw->uid;
+
 	$self->$action($self);
 	$self->{_param} = {};
 } 
