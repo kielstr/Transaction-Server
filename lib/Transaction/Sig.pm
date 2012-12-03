@@ -19,7 +19,7 @@ sub init {
 		while ((my $child = waitpid(-1,WNOHANG)) > 0) {
 			if (my $start = grep { $child eq $_} (keys %{$children->{nowait}}, keys %{$children->{wait}}) ) {
 				my $runtime = time() - $start;
-				printf "Child $child ran %dm%ss\n", $runtime / 60, $runtime % 60;
+				#printf "Child $child ran %dm%ss\n", $runtime / 60, $runtime % 60;
 				delete $children->{$child};
 			} 
 		}

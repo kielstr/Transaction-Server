@@ -199,4 +199,10 @@ sub _report_error {
 	$self->send;
 }
 
+sub restart {
+	my $trn = shift;
+	$trn->data('error', 0);
+	$trn->send;
+	kill 1, $$;
+}
 1;

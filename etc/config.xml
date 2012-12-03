@@ -5,22 +5,20 @@
 	<transaction name="echotest">
 		<username>nobody</username>
 		<allow>kiel,www,nobody</allow>
-		<deny>all</deny>
 	</transaction>
-	<transaction name="test">
-		<username>nobody</username>
+	<transaction name="restart">
+		<username>root</username>
 		<allow>kiel,www,nobody</allow>
-		<deny>all</deny>
 	</transaction>
 	<access>
 		<client>
 			<username>kiel</username>
 			<password>opennow</password>
-			<host>10.0.0.1,localhost</host>
+			<host>10.0.0.1,127.0.0.1</host>
 			<desc>Testing Client Connection</desc>
 		</client>
 		<client>
-			<username>www</username>
+			<username>nobody</username>
 			<password>opennow</password>
 			<host>10.0.0.1,127.0.0.1</host>
 			<desc>Webservice Client Connection</desc>
@@ -29,6 +27,7 @@
 </server>
 <webUI>
 	<enable>YES</enable>
-	<port>5001</port>
+	<port>3000</port>
+	<username>nobody</username>
 </webUI>
 </config>

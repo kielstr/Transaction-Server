@@ -3,6 +3,7 @@
 use Modern::Perl;
 use IO::Select;
 use IO::Handle;
+use IO::Pipe;
 use FindBin qw($Bin);
 use lib "$Bin/lib";
 use Transaction qw(trans_send trans_data);
@@ -20,7 +21,7 @@ my $trn = Transaction->new;
 my $config = Transaction::Config->new;
 my $options = Transaction::Options->new;
 
-fork and exit unless $options->debug;
+#fork and exit unless $options->debug;
 
 STDOUT->autoflush;
 STDERR->autoflush;
@@ -41,23 +42,36 @@ $0 = PID_NAME;
 
 my $select = new IO::Select;
 my $server = $trn->start_server;
+my $pipe = new IO::Pipe;
 
 if (my $child_pid = fork) {
 	$children{nowait}{$child_pid} = time;
 } else {
 	$0 = PID_NAME . "[WebUI]";
-	Transaction::WebUI->run;
+	Transaction::WebUI->run($pipe);
 }
 
+$pipe->reader;
+$select->add($pipe);
 $select->add($server);
 
 $trn_log->log('notice', "Transaction server started ".scalar localtime);
 while ($$) {
 	for my $socket ($select->can_read(1)) {
+		print "Have something\n";
+
+		if ($socket == $pipe) {
+			$trn->log('notice', "PIPE from child\n");
+			$trn->log('notice', $_) while <$pipe>;
+			next;
+		}
+		
+
 		while (my $client = $socket->accept()) {
 			if (my $child_pid = fork) {
 				$children{wait}{$child_pid} = time;
 			} else {
+				
 				print $client "Transaction Server v2.0\nready...\n";
 		
 				my $peer_address = $client->peerhost();
