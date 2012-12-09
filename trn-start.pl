@@ -6,6 +6,7 @@ use IO::Handle;
 use IO::Pipe;
 use FindBin qw($Bin);
 use lib "$Bin/lib";
+use autobox::Core;
 
 use Transaction qw(trans_send trans_data);
 use Transaction::Log qw(trans_log);
@@ -14,6 +15,7 @@ use Transaction::Pid;
 use Transaction::Options; 
 use Transaction::Config;
 use Transaction::WebUI;
+use Transaction::Command;
 use Data::Dumper;
 
 use constant PID_NAME => "trnd @ARGV";
@@ -37,38 +39,59 @@ if (my $pid = $pidfile->running) {
 $pidfile->create;
 
 my %children;
-Transaction::Sig->new(\%children, $0, $trn_log);
+
+Transaction::Sig->new(
+	#children_pids => \%children,
+	pidname => $0, 
+	trn_log => $trn_log
+);
 
 $0 = PID_NAME;
 
 my $select = new IO::Select;
 my $server = $trn->start_server;
 my $pipe = new IO::Pipe;
+my $webUI = Transaction::WebUI->new;
 
 if (my $child_pid = fork) {
+	$pipe->reader;
+	$pipe->autoflush;
+	
 	$children{nowait}{$child_pid} = time;
 } else {
+	$pipe->writer;
+	$pipe->autoflush;
+
 	$0 = PID_NAME . "[WebUI]";
-	Transaction::WebUI->run($pipe);
+	$webUI->run($pipe);
 }
 
-$pipe->reader;
-#$select->add($pipe);
+$select->add($pipe);
 $select->add($server);
 
 $trn_log->log('notice', "Transaction server started ".scalar localtime);
 while ($$) {
-	for my $socket ($select->can_read(1)) {
-		print "Have something\n";
+	for my $fh ($select->can_read(1)) {
 
-		if ($socket == $pipe) {
-			$trn->log('notice', "PIPE from child\n");
-			$trn->log('notice', $_) while <$pipe>;
+		# Commands from the webUI
+		if ($fh == $pipe) {
+			my $cmd = Transaction::Command->new;
+			while (my $buff = $pipe->getline) {
+				my ($key, $value) = split '=', $buff;
+				$key->chomp if $key;
+				$value->chomp if $value;
+				
+				last if $key eq '.';
+				$cmd->param($key, $value);
+
+			}
+			
+			$cmd->execute;
 			next;
 		}
-		
 
-		while (my $client = $socket->accept()) {
+		# Client on socket;
+		while (my $client = $fh->accept()) {
 			if (my $child_pid = fork) {
 				$children{wait}{$child_pid} = time;
 			} else {

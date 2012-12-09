@@ -1,20 +1,20 @@
 package Transaction::Sig;
 
-use strict;
-use warnings;
+use Moose;
+use Modern::Perl;
 use Data::Dumper;
-use parent 'Transaction::Pid';
 use POSIX qw(:signal_h :sys_wait_h);
 
-sub new {
-	my $self = shift;
-	$self =	bless {}, $self;
-	$self->init(@_);
-	return $self;
-}
+has 'children' => (is => 'rw', isa => 'Hashref');
+has 'pidname' => (is => 'rw', isa => 'Str');
+has 'trn_log' => (is => 'rw', isa => 'Object');
 
-sub init {
-	my ($self, $children, $script_name, $trn_log) = @_;
+sub BUILD {
+	my $self = shift;
+	my $children = $self->children_pids;
+	my $pidname = $self->pidname;
+	my $trn_log = $self->trn_log;
+
 	$SIG{CHLD} = sub { 
 		while ((my $child = waitpid(-1,WNOHANG)) > 0) {
 			if (my $start = grep { $child eq $_} (keys %{$children->{nowait}}, keys %{$children->{wait}}) ) {
@@ -39,10 +39,10 @@ sub init {
 		$trn_log->log('notice', 'Restarting trnd');
 		$self->SUPER::DESTROY;
                 # BUG: exec needs to capture the cmdline args
-		exec ($script_name) or die "Couldn't restart: $!\n";
+		exec ($pidname) or die "Couldn't restart: $!\n";
 	};
 
-	$SIG{TERM} = $SIG{INT} = sub {
+	$SIG{__DIE__} = $SIG{TERM} = $SIG{INT} = sub {
 		my $sig = shift;
 		kill 15, keys %{$children->{nowait}};
 		
