@@ -41,7 +41,7 @@ $pidfile->create;
 my %children;
 
 Transaction::Sig->new(
-	#children_pids => \%children,
+	children_pids => \%children,
 	pidname => $0, 
 	trn_log => $trn_log
 );

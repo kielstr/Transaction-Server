@@ -11,7 +11,7 @@ has 'trn_log' => (is => 'rw', isa => 'Object');
 
 sub BUILD {
 	my $self = shift;
-	my $children = $self->children_pids;
+	my $children = $self->children;
 	my $pidname = $self->pidname;
 	my $trn_log = $self->trn_log;
 
