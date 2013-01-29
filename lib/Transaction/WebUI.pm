@@ -2,38 +2,62 @@ package Transaction::WebUI;
 
 use Carp;
 use FindBin qw($Bin);
-use Dancer;
+#use Dancer;
+use base qw(HTTP::Server::Simple::CGI);
 use HTML::Template;
 use Moose;
 use Modern::Perl;
 use Method::Signatures;
 use Transaction::Client;
+use Transaction::Command;
 
 use Data::Dumper;
 
-set port => 8080;
-set content_type => 'text/html';
-set startup_info => 0;
+my $cmd = Transaction::Command->new;
+my %dispatch = (
+	'/restart' => \&restart_server,
+	'/img' => \&send_image,
+);
 
-method run ($pipe) {
-	$self->{pipe} = $pipe;
+sub handle_request {
+	my $self = shift;
+	my $cgi  = shift;
+	
+	my $path = $cgi->path_info();
+	my $handler = $dispatch{$path};
+
+	if (ref($handler) eq "CODE") {
+		print "HTTP/1.0 200 OK\r\n";
+		print $cgi->header;
+		$cgi->start_html('Transaction Server UI');
+		$handler->($cgi);
+		$cgi->end_html;
+	} else {
+		print "HTTP/1.0 404 Not found\r\n";
+		print $cgi->header,
+		$cgi->start_html('Not found'),
+		$cgi->h1('Not found'),
+		$cgi->end_html;
+	}
+}
+
+sub restart_server {
+	my ($self, $cgi) = @_;
+	$cmd->command_data('action', 'restart');
+	$cmd->command_send;
 
         my $tmpl = HTML::Template->new(
 		die_on_bad_params => 0,
 		filename => "$Bin/WebUI-Templates/main.tmpl"
 	);
-
-	get '/' => sub {
-		return $tmpl->output;
-	};
 	
-	get '/restart' => sub {
-		$self->_command_data('action', 'restart');
-		$self->_command_send;
-		return "Restarting the server";
-	};
+	print $tmpl->output;
+};
 
-	dance;
+sub send_image {
+	my ($self, $cgi) = @_;
+	my $path = $cgi->path_info();
+	print $path;	
 }
 
 method _command_data ($key, $val?) {

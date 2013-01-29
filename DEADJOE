@@ -295,3 +295,50 @@ while ($$) {
 }
 
 close $server;
+
+*** These modified files were found in JOE when it aborted on Fri Dec 28 13:33:59 2012
+*** JOE was aborted by UNIX signal 1
+
+*** File '(Unnamed)'
+smarthome
+smartbacks
+
+*** File '(Unnamed)'
+root
+more-options
+tab
+root
+more-options
+tab
+
+*** File '(Unnamed)'
+trn-start.pl
+trn-start.pl
+trn-start.pl
+trn-start.pl
+trn-start.pl
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+lib/Transaction/Sig.pm
+trn-start.pl
+trn-start.pl
+lib/Transaction/WebUI.pm
+lib/Transaction/WebUI.pm
+lib/Transaction/WebUI.pm
+trn-start.pl

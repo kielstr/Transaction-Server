@@ -22,4 +22,17 @@ method execute {
 	}
 }
 
+method command_data ($key, $val?) {
+	my $fh = $self->{pipe};
+	print $fh join '=', $key, $val;
+	print $fh "\n";
+	return 1;
+}
+
+method command_send {
+	my $fh = $self->{pipe};
+	print $fh ".\n";
+	return 1;
+}
+
 1;

@@ -38,12 +38,12 @@ if (my $pid = $pidfile->running) {
 
 $pidfile->create;
 
-my %children;
+my %children = ();
 
-Transaction::Sig->new(
-	children_pids => \%children,
+my $sig = Transaction::Sig->new(
 	pidname => $0, 
-	trn_log => $trn_log
+	trn_log => $trn_log,
+	children => \%children,
 );
 
 $0 = PID_NAME;
@@ -57,6 +57,7 @@ if (my $child_pid = fork) {
 	$pipe->reader;
 	$pipe->autoflush;
 	
+	say "Starting webUI $child_pid";
 	$children{nowait}{$child_pid} = time;
 } else {
 	$pipe->writer;
@@ -76,17 +77,22 @@ while ($$) {
 		# Commands from the webUI
 		if ($fh == $pipe) {
 			my $cmd = Transaction::Command->new;
+			my $havecmd = 0;
 			while (my $buff = $pipe->getline) {
 				my ($key, $value) = split '=', $buff;
 				$key->chomp if $key;
 				$value->chomp if $value;
-				
-				last if $key eq '.';
-				$cmd->param($key, $value);
 
+				print "key: $key, value: $value\n";
+				
+				last if $key and $key eq '.';
+				if ($key and $value) {
+					$cmd->param($key, $value);
+					$havecmd++;
+				}
 			}
 			
-			$cmd->execute;
+			$cmd->execute if $havecmd;
 			next;
 		}
 
@@ -111,15 +117,18 @@ while ($$) {
 				while (my $buff = $client->getline) {
 					my ($key, $val) = split '=', $buff;
 					$key ||= $buff;
-					$key =~ s/(^\s+)|(\s+$)//;
+					$key =~ s/(^\s+)|(\s+$)// if $key;
 				
-					close ($client) and last if $key eq 'quit';
+					next unless $key;
+									
+					$client->close and last if $key eq 'quit';
 					$trn->run if $key eq '.' and $trn->param('action') and $trn->auth_ok; 
 								
 					next unless $val;
 					$val =~ s/(^\s+)|(\s+$)|\n+//;
 					$trn->param($key=>$val);
 				}
+				
 				close $client;
 				exit;
 			}
