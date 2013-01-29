@@ -3,6 +3,7 @@ package Transaction::Sig;
 use Moose;
 use Moose::Util::TypeConstraints;
 use Modern::Perl;
+use base qw(Transaction::Pid);
 use Data::Dumper;
 use POSIX qw(:signal_h :sys_wait_h);
 
@@ -39,7 +40,8 @@ sub BUILD {
 		sleep until (my $kid = waitpid(-1,WNOHANG)) == -1;
 		
 		$trn_log->log('notice', 'Restarting trnd');
-		$self->SUPER::DESTROY;
+		$self->SUPER::cleanup;
+		
                 # BUG: exec needs to capture the cmdline args
 		exec ($pidname) or die "Couldn't restart: $!\n";
 	};
@@ -50,7 +52,7 @@ sub BUILD {
 		
 		kill 15, keys %{$children->{nowait}};
 		sleep until (my $kid = waitpid(-1,WNOHANG)) == -1;
-		$trn_log->log('notice', 'Stopping trnd');
+		$trn_log->log('notice', "Stopping trnd $$");
 		exit;
 	};
 

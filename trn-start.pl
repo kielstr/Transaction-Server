@@ -25,6 +25,7 @@ my $config = Transaction::Config->new;
 my $options = Transaction::Options->new;
 
 fork and exit unless $options->debug;
+say "Starting trnd $$";# if $options->debug;
 
 STDOUT->autoflush;
 STDERR->autoflush;
@@ -83,8 +84,6 @@ while ($$) {
 				$key->chomp if $key;
 				$value->chomp if $value;
 
-				print "key: $key, value: $value\n";
-				
 				last if $key and $key eq '.';
 				if ($key and $value) {
 					$cmd->param($key, $value);

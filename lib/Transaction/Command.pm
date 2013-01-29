@@ -4,8 +4,11 @@ use Carp;
 use Moose;
 use Modern::Perl;
 use Method::Signatures;
+use Data::Dumper;
 
 my $data = \%{Transaction::_data};
+
+has 'pipe' => (isa => 'FileHandle', is => 'rw');
 
 method param ($key, $val?) {
 	$data->{COMMANDS}{params}{$key} = $val if $val;
@@ -23,7 +26,8 @@ method execute {
 }
 
 method command_data ($key, $val?) {
-	my $fh = $self->{pipe};
+	my $fh = $self->pipe;
+	print Dumper $self;
 	print $fh join '=', $key, $val;
 	print $fh "\n";
 	return 1;

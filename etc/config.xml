@@ -1,7 +1,7 @@
 <config>
 <server>
 	<port>5001</port>
-	<pidfile_dir>./</pidfile_dir>
+	<pidfile_dir>/var/run</pidfile_dir>
 	<transaction name="echotest">
 		<username>nobody</username>
 		<allow>kiel,www,nobody</allow>

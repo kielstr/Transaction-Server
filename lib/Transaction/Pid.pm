@@ -1,7 +1,6 @@
 package Transaction::Pid;
 
-use strict;
-use warnings;
+use Modern::Perl;
 use Scalar::Util qw(refaddr);
 use IO::File;
 use Carp;
@@ -39,7 +38,7 @@ sub create {
 	$fh->close;	
 }
 
-sub DESTROY {
+sub cleanup {
 	my $self = shift;
 	my $data = \%{Transaction::_data};
 	my $runfile = $data->{CONFIG}{PIDFILE_DIR}. "/trn.pid";
@@ -52,6 +51,11 @@ sub DESTROY {
 		}
 		undef $fh;
 	}
+}
+
+sub DESTORY {
+	my $self = shift;
+	self->cleanup;
 }
 
 1;
