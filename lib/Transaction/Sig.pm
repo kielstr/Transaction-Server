@@ -3,9 +3,10 @@ package Transaction::Sig;
 use Moose;
 use Moose::Util::TypeConstraints;
 use Modern::Perl;
-use base qw(Transaction::Pid);
 use Data::Dumper;
 use POSIX qw(:signal_h :sys_wait_h);
+
+extends qw(Transaction::Pid);
 
 has 'children' => (is => 'ro', isa => 'HashRef');
 has 'pidname' => (is => 'rw', isa => 'Str');

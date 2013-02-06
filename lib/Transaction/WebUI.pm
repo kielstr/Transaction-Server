@@ -23,8 +23,8 @@ method run ($pipe) {
 	);
 	
 	$httpserver->Start;
-	$httpserver->RegisterURL("/restart",\&_restart_server);
-	$httpserver->RegisterURL("/",\&_main);
+	$httpserver->RegisterURL("/restart", \&_restart_server);
+	$httpserver->RegisterURL("/", \&_main);
 	$httpserver->Process;
 }
 

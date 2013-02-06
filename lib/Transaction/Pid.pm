@@ -1,20 +1,13 @@
 package Transaction::Pid;
 
+use Moose;
 use Modern::Perl;
-use Scalar::Util qw(refaddr);
+use Method::Signatures;
 use IO::File;
 use Carp;
 use Data::Dumper;
 
-sub new {
-	my ($self, %args) = @_;
-	$self = bless {}, $self;
-	return $self;
-}
-
-sub running {
-	my $self = shift;
-
+method running {
 	my $data = \%{Transaction::_data};
 	my $runfile = $data->{CONFIG}{PIDFILE_DIR}. "/trn.pid";
 	
@@ -28,8 +21,7 @@ sub running {
 	return 0;
 }
 
-sub create {
-	my $self = shift;
+method create {
 	my $data = \%{Transaction::_data};
 	my $runfile = $data->{CONFIG}{PIDFILE_DIR}. "/trn.pid";
   	my $fh = IO::File->new($runfile, 'w');
@@ -38,8 +30,7 @@ sub create {
 	$fh->close;	
 }
 
-sub cleanup {
-	my $self = shift;
+method cleanup {
 	my $data = \%{Transaction::_data};
 	my $runfile = $data->{CONFIG}{PIDFILE_DIR}. "/trn.pid";
 	if (-r $runfile) {

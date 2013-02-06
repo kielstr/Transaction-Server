@@ -1,4 +1,6 @@
 package Transaction::Config;
+# Work out how to use Moose in this module problem is the autoloading 
+# of config values.
 
 use strict;
 use warnings;
@@ -31,12 +33,20 @@ sub _init {
 
 	my $xml = XMLin($filename);
 	my $server = $xml->{server};
+	my $webUI = $xml->{server};
 	$self->port($$server{port});
 	
 	for my $val (keys %$server) {
 		$self->$val($$server{$val});
 	}
 
+	# need to sort out the config hash ... grouped by server webUI
+	#for my $val (keys %$webUI) {
+	#	$self->$val($$webUI{$val});
+	#}
+
+	#my $data = \%Transaction::_data;
+	#print Dumper $$data{CONFIG};
 	return 1;
 }
 
